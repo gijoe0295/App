@@ -86,10 +86,11 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
+import ReportActionListWrapper from './report/ReportActionsListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
-import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
+import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
@@ -139,7 +140,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
-    const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -717,52 +717,52 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
-                <ScreenWrapper
-                    navigation={navigation}
-                    style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                    testID={`report-screen-${reportID}`}
+            <ScreenWrapper
+                navigation={navigation}
+                style={screenWrapperStyle}
+                shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                testID={`report-screen-${reportID}`}
+            >
+                <FullPageNotFoundView
+                    shouldShow={shouldShowNotFoundPage}
+                    subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                    subtitleStyle={[styles.textSupporting]}
+                    shouldDisplaySearchRouter
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
+                    shouldShowLink={shouldShowNotFoundLinkedAction}
+                    linkKey="notFound.noAccess"
+                    onLinkPress={navigateToEndOfReport}
                 >
-                    <FullPageNotFoundView
-                        shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
-                        subtitleStyle={[styles.textSupporting]}
-                        shouldDisplaySearchRouter
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
-                        shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkKey="notFound.noAccess"
-                        onLinkPress={navigateToEndOfReport}
+                    <OfflineWithFeedback
+                        pendingAction={reportPendingAction}
+                        errors={reportErrors}
+                        shouldShowErrorMessages={false}
+                        needsOffscreenAlphaCompositing
                     >
-                        <OfflineWithFeedback
-                            pendingAction={reportPendingAction}
-                            errors={reportErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
+                        {headerView}
+                    </OfflineWithFeedback>
+                    {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
+                        <Banner
+                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                            text={chatWithAccountManagerText}
+                            onClose={dismissBanner}
+                            onButtonPress={chatWithAccountManager}
+                            shouldShowCloseButton
+                            icon={Expensicons.Lightbulb}
+                            shouldShowIcon
+                            shouldShowButton
+                        />
+                    )}
+                    <DragAndDropProvider isDisabled={isEditingDisabled}>
+                        <View
+                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                            testID="report-actions-view-wrapper"
                         >
-                            {headerView}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
-                                text={chatWithAccountManagerText}
-                                onClose={dismissBanner}
-                                onButtonPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                                icon={Expensicons.Lightbulb}
-                                shouldShowIcon
-                                shouldShowButton
-                            />
-                        )}
-                        <DragAndDropProvider isDisabled={isEditingDisabled}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                testID="report-actions-view-wrapper"
-                            >
-                                {!report ? (
-                                    <ReportActionsSkeletonView />
-                                ) : (
+                            {!report ? (
+                                <ReportActionsSkeletonView />
+                            ) : (
+                                <ReportActionListWrapper>
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -772,25 +772,25 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                )}
-                                {isCurrentReportLoadedFromOnyx ? (
-                                    <ReportFooter
-                                        onComposerFocus={onComposerFocus}
-                                        onComposerBlur={onComposerBlur}
-                                        report={report}
-                                        reportMetadata={reportMetadata}
-                                        policy={policy}
-                                        pendingAction={reportPendingAction}
-                                        isComposerFullSize={!!isComposerFullSize}
-                                        lastReportAction={lastReportAction}
-                                    />
-                                ) : null}
-                            </View>
-                            <PortalHost name="suggestions" />
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                </ScreenWrapper>
-            </ReactionListContext.Provider>
+                                </ReportActionListWrapper>
+                            )}
+                            {isCurrentReportLoadedFromOnyx ? (
+                                <ReportFooter
+                                    onComposerFocus={onComposerFocus}
+                                    onComposerBlur={onComposerBlur}
+                                    report={report}
+                                    reportMetadata={reportMetadata}
+                                    policy={policy}
+                                    pendingAction={reportPendingAction}
+                                    isComposerFullSize={!!isComposerFullSize}
+                                    lastReportAction={lastReportAction}
+                                />
+                            ) : null}
+                        </View>
+                        <PortalHost name="suggestions" />
+                    </DragAndDropProvider>
+                </FullPageNotFoundView>
+            </ScreenWrapper>
         </ActionListContext.Provider>
     );
 }

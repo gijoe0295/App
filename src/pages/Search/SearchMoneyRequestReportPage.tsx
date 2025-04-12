@@ -20,10 +20,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import ReportActionListWrapper from '@pages/home/report/ReportActionsListWrapper';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/pages/home/ReportScreenContext';
+import {ActionListContext} from '@src/pages/home/ReportScreenContext';
+import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -54,7 +55,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
-    const reactionListRef = useRef<ReactionListRef>(null);
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const reportID = report?.reportID;
@@ -113,37 +113,37 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
-                <ScreenWrapper
-                    testID={SearchMoneyRequestReportPage.displayName}
-                    shouldEnableMaxHeight
-                    offlineIndicatorStyle={styles.mtAuto}
-                    headerGapStyles={styles.searchHeaderGap}
-                >
-                    <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            <View style={styles.flex1}>
-                                <HeaderGap />
-                                <TopBar
-                                    breadcrumbLabel={translate('common.reports')}
-                                    shouldDisplaySearch={false}
-                                />
-                                <SearchTypeMenu queryJSON={undefined} />
-                            </View>
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+            <ScreenWrapper
+                testID={SearchMoneyRequestReportPage.displayName}
+                shouldEnableMaxHeight
+                offlineIndicatorStyle={styles.mtAuto}
+                headerGapStyles={styles.searchHeaderGap}
+            >
+                <View style={styles.searchSplitContainer}>
+                    <View style={styles.searchSidebar}>
+                        <View style={styles.flex1}>
+                            <HeaderGap />
+                            <TopBar
+                                breadcrumbLabel={translate('common.reports')}
+                                shouldDisplaySearch={false}
+                            />
+                            <SearchTypeMenu queryJSON={undefined} />
                         </View>
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            <FullPageNotFoundView
-                                shouldShow={shouldShowNotFoundPage}
-                                subtitleKey="notFound.noAccess"
-                                subtitleStyle={[styles.textSupporting]}
-                                shouldDisplaySearchRouter
-                                shouldShowBackButton={shouldUseNarrowLayout}
-                                onBackButtonPress={Navigation.goBack}
-                                linkKey="notFound.noAccess"
-                            >
-                                <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                    <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                        <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+                    </View>
+                    <View style={[styles.flexColumn, styles.flex1]}>
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey="notFound.noAccess"
+                            subtitleStyle={[styles.textSupporting]}
+                            shouldDisplaySearchRouter
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            onBackButtonPress={Navigation.goBack}
+                            linkKey="notFound.noAccess"
+                        >
+                            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                    <ReportActionListWrapper>
                                         <MoneyRequestReportView
                                             report={report}
                                             reportMetadata={reportMetadata}
@@ -151,14 +151,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                             shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                             backToRoute={route.params.backTo}
                                         />
-                                    </View>
-                                    <PortalHost name="suggestions" />
-                                </DragAndDropProvider>
-                            </FullPageNotFoundView>
-                        </View>
+                                    </ReportActionListWrapper>
+                                </View>
+                                <PortalHost name="suggestions" />
+                            </DragAndDropProvider>
+                        </FullPageNotFoundView>
                     </View>
-                </ScreenWrapper>
-            </ReactionListContext.Provider>
+                </View>
+            </ScreenWrapper>
         </ActionListContext.Provider>
     );
 }
