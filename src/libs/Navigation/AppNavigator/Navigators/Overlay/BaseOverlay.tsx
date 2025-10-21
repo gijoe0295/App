@@ -45,14 +45,7 @@ function BaseOverlay({onPress, hasMarginRight = false, progress, hasMarginLeft =
              That's why we added this workaround. Because of two Pressable components on the desktop app
              we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
              everything behaves normally like one big pressable */}
-                <PressableWithoutFeedback
-                    style={[styles.draggableTopBar, styles.boxShadowNone, styles.cursorAuto]}
-                    onPress={onPress}
-                    accessibilityLabel={translate('common.close')}
-                    role={CONST.ROLE.BUTTON}
-                    id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
-                    tabIndex={-1}
-                />
+                <View style={[styles.draggableTopBar, styles.pRelative]} dataSet={{dragArea: true}} />
                 <PressableWithoutFeedback
                     style={[styles.flex1, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}

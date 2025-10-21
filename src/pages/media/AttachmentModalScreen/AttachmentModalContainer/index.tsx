@@ -52,6 +52,7 @@ function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({
                 shouldHandleNavigationBack={shouldHandleNavigationBack}
                 onClose={closeModal}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldUseCustomBackdrop
             >
                 <AttachmentStateContextProvider>
                     <AttachmentModalBaseContent
